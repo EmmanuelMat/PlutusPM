@@ -269,20 +269,26 @@ end;
 $$;
 
 -- Is site manager/admin for specific site?
+-- NOTE: This version in 00001 is simplified to avoid dependency on portfolio.sites which doesn't exist yet
+-- A more secure version that joins portfolio.sites is created in 00002 after sites table exists
 create or replace function platform.is_site_manager(p_site_id uuid)
 returns boolean
-language sql
+language plpgsql
 security definer
-set search_path = platform, portfolio, public
+set search_path = platform, public
 as $$
-  select exists (
+begin
+  if p_site_id is null then return false; end if;
+  if platform.is_super_admin() then return true; end if;
+
+  -- Simplified check: membership with role owner/admin/portfolio_manager/site_manager and site access
+  return exists (
     select 1 from platform.memberships m
-    join portfolio.sites s on s.org_id = m.org_id
     where m.user_id = auth.uid()
-    and s.id = p_site_id
     and m.role in ('owner','admin','portfolio_manager','site_manager')
-    and (m.site_ids is null or s.id = any(m.site_ids))
-  ) or platform.is_super_admin();
+    and (m.site_ids is null or p_site_id = any(m.site_ids))
+  );
+end;
 $$;
 
 -- Current org id (first membership)

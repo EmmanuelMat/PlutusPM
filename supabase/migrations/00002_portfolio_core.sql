@@ -438,3 +438,21 @@ alter publication supabase_realtime add table portfolio.sites;
 alter publication supabase_realtime add table portfolio.buildings;
 alter publication supabase_realtime add table portfolio.spaces;
 alter publication supabase_realtime add table portfolio.leases;
+
+-- Upgrade is_site_manager to secure version that validates org via sites table (now that sites exists)
+-- This replaces the simplified version from 00001_platform.sql
+create or replace function platform.is_site_manager(p_site_id uuid)
+returns boolean
+language sql
+security definer
+set search_path = platform, portfolio, public
+as $$
+  select exists (
+    select 1 from platform.memberships m
+    join portfolio.sites s on s.org_id = m.org_id
+    where m.user_id = auth.uid()
+    and s.id = p_site_id
+    and m.role in ('owner','admin','portfolio_manager','site_manager')
+    and (m.site_ids is null or s.id = any(m.site_ids))
+  ) or platform.is_super_admin();
+$$;
