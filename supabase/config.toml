@@ -101,6 +101,17 @@ enabled = true
 verify_jwt = true
 entrypoint = "./functions/compliance-report/index.ts"
 
+[functions.scheduled-reports]
+enabled = true
+verify_jwt = false
+schedule = "0 7 * * *"
+entrypoint = "./functions/scheduled-reports/index.ts"
+
+[functions.export-data]
+enabled = true
+verify_jwt = true
+entrypoint = "./functions/export-data/index.ts"
+
 # ---- Analytics off for local ----
 [analytics]
 enabled = false
