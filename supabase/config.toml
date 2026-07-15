@@ -76,6 +76,11 @@ enabled = true
 verify_jwt = true
 entrypoint = "./functions/send-visitor-pass/index.ts"
 
+[functions.engineering-report]
+enabled = true
+verify_jwt = true
+entrypoint = "./functions/engineering-report/index.ts"
+
 # ---- Analytics off for local ----
 [analytics]
 enabled = false
