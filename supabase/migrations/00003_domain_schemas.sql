@@ -452,8 +452,23 @@ grant usage on all sequences in schema vendor to authenticated, service_role;
 grant usage on all sequences in schema metrics to authenticated, service_role;
 
 -- Realtime for critical tables
-alter publication supabase_realtime add table ops.work_orders;
-alter publication supabase_realtime add table ops.assets;
-alter publication supabase_realtime add table tenant.service_requests;
-alter publication supabase_realtime add table visitor.visits;
-alter publication supabase_realtime add table vendor.compliance_status;
+do $$ begin
+  alter publication supabase_realtime add table ops.work_orders;
+exception when duplicate_object then null;
+end $$;
+do $$ begin
+  alter publication supabase_realtime add table ops.assets;
+exception when duplicate_object then null;
+end $$;
+do $$ begin
+  alter publication supabase_realtime add table tenant.service_requests;
+exception when duplicate_object then null;
+end $$;
+do $$ begin
+  alter publication supabase_realtime add table visitor.visits;
+exception when duplicate_object then null;
+end $$;
+do $$ begin
+  alter publication supabase_realtime add table vendor.compliance_status;
+exception when duplicate_object then null;
+end $$;

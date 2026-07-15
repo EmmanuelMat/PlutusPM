@@ -580,13 +580,34 @@ grant select, insert, update, delete on all tables in schema vendor to authentic
 grant usage on all sequences in schema vendor to authenticated, service_role;
 
 -- Realtime
-alter publication supabase_realtime add table vendor.vendor_contacts;
-alter publication supabase_realtime add table vendor.documents;
-alter publication supabase_realtime add table vendor.compliance_rules;
-alter publication supabase_realtime add table vendor.contract_approvals;
-alter publication supabase_realtime add table vendor.vendor_approvals;
-alter publication supabase_realtime add table vendor.compliance_status;
-alter publication supabase_realtime add table vendor.notification_rules;
+do $$ begin
+  alter publication supabase_realtime add table vendor.vendor_contacts;
+exception when duplicate_object then null;
+end $$;
+do $$ begin
+  alter publication supabase_realtime add table vendor.documents;
+exception when duplicate_object then null;
+end $$;
+do $$ begin
+  alter publication supabase_realtime add table vendor.compliance_rules;
+exception when duplicate_object then null;
+end $$;
+do $$ begin
+  alter publication supabase_realtime add table vendor.contract_approvals;
+exception when duplicate_object then null;
+end $$;
+do $$ begin
+  alter publication supabase_realtime add table vendor.vendor_approvals;
+exception when duplicate_object then null;
+end $$;
+do $$ begin
+  alter publication supabase_realtime add table vendor.compliance_status;
+exception when duplicate_object then null;
+end $$;
+do $$ begin
+  alter publication supabase_realtime add table vendor.notification_rules;
+exception when duplicate_object then null;
+end $$;
 
 -- Crons - safe with exception handling - fixed nested $$ issue using $do$ and $cron$
 do $do$ begin

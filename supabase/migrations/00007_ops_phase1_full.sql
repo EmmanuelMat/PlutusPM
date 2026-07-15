@@ -557,11 +557,26 @@ grant select, insert, update, delete on all tables in schema ops to authenticate
 grant usage on all sequences in schema ops to authenticated, service_role;
 
 -- Realtime for new tables
-alter publication supabase_realtime add table ops.inspections;
-alter publication supabase_realtime add table ops.inspection_items;
-alter publication supabase_realtime add table ops.incidents;
-alter publication supabase_realtime add table ops.work_order_comments;
-alter publication supabase_realtime add table ops.inventory_stock;
+do $$ begin
+  alter publication supabase_realtime add table ops.inspections;
+exception when duplicate_object then null;
+end $$;
+do $$ begin
+  alter publication supabase_realtime add table ops.inspection_items;
+exception when duplicate_object then null;
+end $$;
+do $$ begin
+  alter publication supabase_realtime add table ops.incidents;
+exception when duplicate_object then null;
+end $$;
+do $$ begin
+  alter publication supabase_realtime add table ops.work_order_comments;
+exception when duplicate_object then null;
+end $$;
+do $$ begin
+  alter publication supabase_realtime add table ops.inventory_stock;
+exception when duplicate_object then null;
+end $$;
 
 -- Add cron for low stock check daily 8am - safe with exception handling - fixed nested $$ issue using $do$ and $cron$
 do $do$ begin

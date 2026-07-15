@@ -443,5 +443,11 @@ grant select, insert, update, delete on all tables in schema platform to authent
 grant usage on all sequences in schema platform to authenticated;
 
 -- Realtime for notifications, memberships
-alter publication supabase_realtime add table platform.notifications;
-alter publication supabase_realtime add table platform.memberships;
+do $$ begin
+  alter publication supabase_realtime add table platform.notifications;
+exception when duplicate_object then null;
+end $$;
+do $$ begin
+  alter publication supabase_realtime add table platform.memberships;
+exception when duplicate_object then null;
+end $$;

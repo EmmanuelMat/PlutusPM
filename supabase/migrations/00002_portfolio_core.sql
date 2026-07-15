@@ -435,10 +435,22 @@ grant select, insert, update, delete on all tables in schema portfolio to authen
 grant usage on all sequences in schema portfolio to authenticated;
 
 -- Realtime
-alter publication supabase_realtime add table portfolio.sites;
-alter publication supabase_realtime add table portfolio.buildings;
-alter publication supabase_realtime add table portfolio.spaces;
-alter publication supabase_realtime add table portfolio.leases;
+do $$ begin
+  alter publication supabase_realtime add table portfolio.sites;
+exception when duplicate_object then null;
+end $$;
+do $$ begin
+  alter publication supabase_realtime add table portfolio.buildings;
+exception when duplicate_object then null;
+end $$;
+do $$ begin
+  alter publication supabase_realtime add table portfolio.spaces;
+exception when duplicate_object then null;
+end $$;
+do $$ begin
+  alter publication supabase_realtime add table portfolio.leases;
+exception when duplicate_object then null;
+end $$;
 
 -- Upgrade is_site_manager to secure version that validates org via sites table (now that sites exists)
 -- This replaces the simplified version from 00001_platform.sql

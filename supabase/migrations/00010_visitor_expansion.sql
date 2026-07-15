@@ -410,8 +410,14 @@ grant select, insert, update, delete on all tables in schema visitor to authenti
 grant usage on all sequences in schema visitor to authenticated, service_role;
 
 -- Realtime
-alter publication supabase_realtime add table visitor.passes;
-alter publication supabase_realtime add table visitor.access_logs;
+do $$ begin
+  alter publication supabase_realtime add table visitor.passes;
+exception when duplicate_object then null;
+end $$;
+do $$ begin
+  alter publication supabase_realtime add table visitor.access_logs;
+exception when duplicate_object then null;
+end $$;
 
 -- Cron for expired passes cleanup hourly - safe with exception handling - fixed nested $$ issue using $do$ and $cron$
 do $do$ begin

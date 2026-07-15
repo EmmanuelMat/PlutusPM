@@ -321,8 +321,23 @@ grant select, insert, update, delete on all tables in schema tenant to authentic
 grant usage on all sequences in schema tenant to authenticated, service_role;
 
 -- Realtime
-alter publication supabase_realtime add table tenant.announcements;
-alter publication supabase_realtime add table tenant.events;
-alter publication supabase_realtime add table tenant.reservations;
-alter publication supabase_realtime add table tenant.feedback;
-alter publication supabase_realtime add table tenant.tenant_contacts;
+do $$ begin
+  alter publication supabase_realtime add table tenant.announcements;
+exception when duplicate_object then null;
+end $$;
+do $$ begin
+  alter publication supabase_realtime add table tenant.events;
+exception when duplicate_object then null;
+end $$;
+do $$ begin
+  alter publication supabase_realtime add table tenant.reservations;
+exception when duplicate_object then null;
+end $$;
+do $$ begin
+  alter publication supabase_realtime add table tenant.feedback;
+exception when duplicate_object then null;
+end $$;
+do $$ begin
+  alter publication supabase_realtime add table tenant.tenant_contacts;
+exception when duplicate_object then null;
+end $$;

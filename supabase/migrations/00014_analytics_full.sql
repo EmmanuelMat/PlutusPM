@@ -633,5 +633,11 @@ grant select, insert, update, delete on all tables in schema metrics to authenti
 grant usage on all sequences in schema metrics to authenticated, service_role;
 
 -- Realtime for reports
-alter publication supabase_realtime add table metrics.reports;
-alter publication supabase_realtime add table metrics.report_runs;
+do $$ begin
+  alter publication supabase_realtime add table metrics.reports;
+exception when duplicate_object then null;
+end $$;
+do $$ begin
+  alter publication supabase_realtime add table metrics.report_runs;
+exception when duplicate_object then null;
+end $$;
