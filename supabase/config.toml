@@ -81,6 +81,16 @@ enabled = true
 verify_jwt = true
 entrypoint = "./functions/engineering-report/index.ts"
 
+[functions.visitor-kiosk]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/visitor-kiosk/index.ts"
+
+[functions.amenity-booking]
+enabled = true
+verify_jwt = true
+entrypoint = "./functions/amenity-booking/index.ts"
+
 # ---- Analytics off for local ----
 [analytics]
 enabled = false
