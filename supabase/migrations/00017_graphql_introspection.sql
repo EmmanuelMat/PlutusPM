@@ -6,18 +6,18 @@
 -- See: https://supabase.com/docs/guides/graphql/configuration#introspection
 
 -- Enable introspection + inflect_names for all custom schemas and public
-comment on schema public is '@graphql({"inflect_names": true, "introspection": true})';
-comment on schema platform is '@graphql({"inflect_names": true, "introspection": true})';
-comment on schema portfolio is '@graphql({"inflect_names": true, "introspection": true})';
-comment on schema ops is '@graphql({"inflect_names": true, "introspection": true})';
-comment on schema tenant is '@graphql({"inflect_names": true, "introspection": true})';
-comment on schema visitor is '@graphql({"inflect_names": true, "introspection": true})';
-comment on schema vendor is '@graphql({"inflect_names": true, "introspection": true})';
-comment on schema metrics is '@graphql({"inflect_names": true, "introspection": true})';
-comment on schema graphql_public is '@graphql({"inflect_names": true, "introspection": true})';
-
--- Also ensure storage schema has introspection if needed (optional)
-comment on schema storage is '@graphql({"inflect_names": true, "introspection": true})';
+-- Wrapped in DO blocks to avoid ERROR must be owner of schema (42501) for system schemas like graphql_public, storage
+do $$ begin execute 'comment on schema public is ''@graphql({"inflect_names": true, "introspection": true})'''; exception when insufficient_privilege or others then raise notice 'Cannot comment on schema public - %', SQLERRM; end $$;
+do $$ begin execute 'comment on schema platform is ''@graphql({"inflect_names": true, "introspection": true})'''; exception when others then raise notice 'comment on platform failed: %', SQLERRM; end $$;
+do $$ begin execute 'comment on schema portfolio is ''@graphql({"inflect_names": true, "introspection": true})'''; exception when others then raise notice 'comment on portfolio failed: %', SQLERRM; end $$;
+do $$ begin execute 'comment on schema ops is ''@graphql({"inflect_names": true, "introspection": true})'''; exception when others then raise notice 'comment on ops failed: %', SQLERRM; end $$;
+do $$ begin execute 'comment on schema tenant is ''@graphql({"inflect_names": true, "introspection": true})'''; exception when others then raise notice 'comment on tenant failed: %', SQLERRM; end $$;
+do $$ begin execute 'comment on schema visitor is ''@graphql({"inflect_names": true, "introspection": true})'''; exception when others then raise notice 'comment on visitor failed: %', SQLERRM; end $$;
+do $$ begin execute 'comment on schema vendor is ''@graphql({"inflect_names": true, "introspection": true})'''; exception when others then raise notice 'comment on vendor failed: %', SQLERRM; end $$;
+do $$ begin execute 'comment on schema metrics is ''@graphql({"inflect_names": true, "introspection": true})'''; exception when others then raise notice 'comment on metrics failed: %', SQLERRM; end $$;
+-- System schemas - may fail if not owner, safe to skip
+do $$ begin execute 'comment on schema graphql_public is ''@graphql({"inflect_names": true, "introspection": true})'''; exception when insufficient_privilege or others then raise notice 'Cannot comment on graphql_public - not owner, skipping'; end $$;
+do $$ begin execute 'comment on schema storage is ''@graphql({"inflect_names": true, "introspection": true})'''; exception when insufficient_privilege or others then raise notice 'Cannot comment on storage - not owner, skipping'; end $$;
 
 -- Rebuild GraphQL schema and reload PostgREST cache (wrapped in exception handling for older pg_graphql versions)
 do $$
