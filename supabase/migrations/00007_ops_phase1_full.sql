@@ -563,20 +563,20 @@ alter publication supabase_realtime add table ops.incidents;
 alter publication supabase_realtime add table ops.work_order_comments;
 alter publication supabase_realtime add table ops.inventory_stock;
 
--- Add cron for low stock check daily 8am - safe with exception handling
-do $$ begin
+-- Add cron for low stock check daily 8am - safe with exception handling - fixed nested $$ issue using $do$ and $cron$
+do $do$ begin
   if not exists (select 1 from cron.job where jobname='check-low-stock') then
     perform cron.schedule(
       'check-low-stock',
       '0 8 * * *',
-      $$
+      $cron$
       insert into platform.notifications (org_id, site_id, type, title, body, payload)
       select (select org_id from portfolio.sites where id = site_id limit 1), site_id, 'system', 'Low stock: ' || (select name from ops.inventory_items where id = inventory_item_id), 'Quantity ' || current_qty || ' below min ' || min_level, jsonb_build_object('inventory_item_id', inventory_item_id, 'current_qty', current_qty)
       from ops.check_low_stock();
-      $$
+      $cron$
     );
   end if;
 exception when others then raise notice 'cron.schedule check-low-stock failed: %', SQLERRM;
-end $$;
+end $do$;
 
 -- Add cron for daily asset health snapshot? Could be a materialized view refresh

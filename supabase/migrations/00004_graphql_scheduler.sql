@@ -393,11 +393,10 @@ $$;
 -- PG_CRON JOBS (Scheduler)
 -----------------------------
 -- Note: In Supabase cloud, these need to be run as postgres user or via dashboard cron UI
--- We'll create them here; they will be created when migration runs as postgres
--- For local supabase start, cron is enabled - wrapped in exception handling to not fail migration if cron not available
+-- Wrapped in exception handling to not fail migration if cron not available
+-- Fixed nested $$ issue: outer uses $do$, inner uses $cron$ to avoid syntax error at "select"
 
-do $$
-begin
+do $do$ begin
   -- Clean existing jobs with same name
   perform cron.unschedule('check-sla-breaches') where exists (select 1 from cron.job where jobname='check-sla-breaches');
   perform cron.unschedule('generate-pm-work-orders') where exists (select 1 from cron.job where jobname='generate-pm-work-orders');
@@ -407,78 +406,78 @@ begin
   perform cron.unschedule('lease-expiration-check') where exists (select 1 from cron.job where jobname='lease-expiration-check');
 exception when others then 
   raise notice 'cron.unschedule failed - cron extension may not be installed or not postgres role, skipping';
-end $$;
+end $do$;
 
 -- SLA every 15 minutes
-do $$ begin
+do $do$ begin
   perform cron.schedule(
     'check-sla-breaches',
     '*/15 * * * *',
-    $$ select ops.check_sla_breaches(); $$
+    $cron$ select ops.check_sla_breaches(); $cron$
   );
 exception when others then raise notice 'cron.schedule check-sla-breaches failed: %', SQLERRM;
-end $$;
+end $do$;
 
 -- PM work orders daily 2am
-do $$ begin
+do $do$ begin
   perform cron.schedule(
     'generate-pm-work-orders',
     '0 2 * * *',
-    $$ select ops.generate_pm_work_orders(); $$
+    $cron$ select ops.generate_pm_work_orders(); $cron$
   );
 exception when others then raise notice 'cron.schedule generate-pm-work-orders failed: %', SQLERRM;
-end $$;
+end $do$;
 
 -- COI expiration hourly 8am-6pm
-do $$ begin
+do $do$ begin
   perform cron.schedule(
     'check-coi-expiration',
     '0 8-18 * * *',
-    $$ select vendor.check_coi_expirations(); $$
+    $cron$ select vendor.check_coi_expirations(); $cron$
   );
 exception when others then raise notice 'cron.schedule check-coi-expiration failed: %', SQLERRM;
-end $$;
+end $do$;
 
 -- Daily metrics 3am
-do $$ begin
+do $do$ begin
   perform cron.schedule(
     'rollup-daily-metrics',
     '0 3 * * *',
-    $$ select metrics.rollup_daily_stats(current_date - 1); $$
+    $cron$ select metrics.rollup_daily_stats(current_date - 1); $cron$
   );
 exception when others then raise notice 'cron.schedule rollup-daily-metrics failed: %', SQLERRM;
-end $$;
+end $do$;
 
 -- Cleanup expired visits daily 4am
-do $$ begin
+do $do$ begin
   perform cron.schedule(
     'cleanup-expired-visits',
     '0 4 * * *',
-    $$
+    $cron$
     delete from visitor.visits where status = 'checked_out' and checked_out_at < now() - interval '90 days';
     delete from platform.notifications where created_at < now() - interval '90 days' and is_read = true;
-    $$
+    $cron$
   );
 exception when others then raise notice 'cron.schedule cleanup-expired-visits failed: %', SQLERRM;
-end $$;
+end $do$;
 
 -- Lease expiration weekly Monday 9am
-do $$ begin
+do $do$ begin
   perform cron.schedule(
     'lease-expiration-check',
     '0 9 * * 1',
-    $$
+    $cron$
     insert into platform.notifications (org_id, site_id, type, title, body, payload)
     select org_id, site_id, 'lease_expiring', 'Lease expiring: ' || coalesce((select name from portfolio.spaces where id = space_id), 'space'), 'Lease ends ' || end_date::text, jsonb_build_object('lease_id', id, 'space_id', space_id, 'days_left', (end_date - current_date))
     from portfolio.leases
     where status = 'active' and end_date between current_date and current_date + interval '30 days';
-    $$
+    $cron$
   );
 exception when others then raise notice 'cron.schedule lease-expiration-check failed: %', SQLERRM;
-end $$;
+end $do$;
 
 -- Grant cron usage - safe with exception
-do $$ begin
+do $do$ begin
   execute 'grant usage on schema cron to postgres';
 exception when others then raise notice 'grant on schema cron failed - may not exist yet';
-end $$;
+end $do$;

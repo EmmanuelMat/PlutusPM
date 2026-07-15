@@ -588,24 +588,24 @@ alter publication supabase_realtime add table vendor.vendor_approvals;
 alter publication supabase_realtime add table vendor.compliance_status;
 alter publication supabase_realtime add table vendor.notification_rules;
 
--- Crons - safe with exception handling
-do $$ begin
+-- Crons - safe with exception handling - fixed nested $$ issue using $do$ and $cron$
+do $do$ begin
   if not exists (select 1 from cron.job where jobname='evaluate-vendor-compliance') then
-    perform cron.schedule('evaluate-vendor-compliance', '0 6 * * *', $$ select vendor.evaluate_all_compliance(); $$);
+    perform cron.schedule('evaluate-vendor-compliance', '0 6 * * *', $cron$ select vendor.evaluate_all_compliance(); $cron$);
   end if;
 exception when others then raise notice 'cron.schedule evaluate-vendor-compliance failed: %', SQLERRM;
-end $$;
+end $do$;
 
-do $$ begin
+do $do$ begin
   if not exists (select 1 from cron.job where jobname='check-contract-expirations') then
-    perform cron.schedule('check-contract-expirations', '0 7 * * *', $$ select vendor.check_contract_expirations(); $$);
+    perform cron.schedule('check-contract-expirations', '0 7 * * *', $cron$ select vendor.check_contract_expirations(); $cron$);
   end if;
 exception when others then raise notice 'cron.schedule check-contract-expirations failed: %', SQLERRM;
-end $$;
+end $do$;
 
-do $$ begin
+do $do$ begin
   if not exists (select 1 from cron.job where jobname='check-document-expirations') then
-    perform cron.schedule('check-document-expirations', '0 7 * * *', $$ select vendor.check_document_expirations(); $$);
+    perform cron.schedule('check-document-expirations', '0 7 * * *', $cron$ select vendor.check_document_expirations(); $cron$);
   end if;
 exception when others then raise notice 'cron.schedule check-document-expirations failed: %', SQLERRM;
-end $$;
+end $do$;
