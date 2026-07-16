@@ -21,7 +21,7 @@ create table platform.access_requests (
   org_id uuid not null references platform.organizations(id) on delete cascade,
   email text not null,
   user_id uuid references platform.profiles(id) on delete set null, -- if user already exists
-  requested_role platform.org_role not null default 'member',
+  requested_role platform.org_role not null default 'tenant_user',
   requested_site_ids uuid[] default null, -- null = all sites
   status platform.access_request_status not null default 'pending',
   requested_at timestamptz default now() not null,
